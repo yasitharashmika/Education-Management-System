@@ -1,0 +1,163 @@
+/* src/pages/FacultyGrades.css */
+.faculty-header {
+    margin-bottom: 24px;
+}
+
+.faculty-header h1 {
+    font-size: 24px;
+    color: #2b3674;
+    margin-bottom: 8px;
+}
+
+.faculty-header p {
+    color: #a3aed0;
+    font-size: 14px;
+}
+
+.top-filters {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.filter-group label {
+    font-size: 12px;
+    color: #2b3674;
+    font-weight: 600;
+}
+
+.filter-group select {
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    font-size: 14px;
+    color: #2b3674;
+    outline: none;
+    background: white;
+}
+
+.roster-container {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 80px; /* Space for the floating save button */
+}
+
+.roster-header {
+    margin-bottom: 24px;
+}
+
+.roster-header h3 {
+    font-size: 16px;
+    color: #2b3674;
+    margin-bottom: 4px;
+}
+
+.roster-header p {
+    font-size: 12px;
+    color: #a3aed0;
+}
+
+.roster-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.roster-table th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #a3aed0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.roster-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f4f7fe;
+    font-size: 13px;
+    color: #2b3674;
+    vertical-align: middle;
+}
+
+.student-id {
+    color: #a3aed0;
+    font-weight: 500;
+}
+
+.student-name {
+    font-weight: 500;
+}
+
+.mark-input {
+    width: 60px;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    text-align: center;
+    font-size: 13px;
+    color: #2b3674;
+    outline: none;
+    transition: border 0.2s;
+}
+
+.mark-input:focus {
+    border-color: #4318ff;
+}
+
+/* Reusing Pill Classes from previous components */
+.grade-pill {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 12px;
+    display: inline-block;
+    text-align: center;
+    min-width: 40px;
+}
+.pill-aplus { background: #e6f8f3; color: #05cd99; }
+.pill-a { background: #e6f8f3; color: #05cd99; }
+.pill-aminus { background: #e6f8f3; color: #03906b; }
+.pill-b { background: #eff6ff; color: #3b82f6; }
+.pill-bminus { background: #eff6ff; color: #60a5fa; }
+.pill-f { background: #ffebee; color: #ee5d50; }
+
+.save-action-bar {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: calc(100% - 280px);
+    background: white;
+    padding: 16px 32px;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end;
+    z-index: 10;
+}
+
+.save-btn {
+    background: #05cd99;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.2s;
+}
+
+.save-btn:hover {
+    background: #04b083;
+}

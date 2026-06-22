@@ -1,0 +1,174 @@
+/* src/pages/AuditLog.css */
+.audit-header {
+    margin-bottom: 24px;
+}
+
+.audit-header h1 {
+    font-size: 24px;
+    color: #2b3674;
+    margin-bottom: 8px;
+}
+
+.audit-header p {
+    color: #a3aed0;
+    font-size: 14px;
+}
+
+/* Filters Section */
+.audit-filters {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    background: white;
+    padding: 24px;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 24px;
+}
+
+.audit-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.audit-filter-group label {
+    font-size: 12px;
+    color: #a3aed0;
+    font-weight: 600;
+}
+
+.audit-select-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.audit-select-icon {
+    position: absolute;
+    left: 16px;
+    color: #a3aed0;
+}
+
+.audit-select {
+    width: 100%;
+    padding: 12px 16px 12px 48px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    font-size: 14px;
+    color: #2b3674;
+    outline: none;
+    appearance: none;
+    background: white;
+    cursor: pointer;
+}
+
+/* Table Section */
+.audit-container {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid #e2e8f0;
+}
+
+.audit-container-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.audit-icon-box {
+    background: #f4f7fe;
+    color: #a3aed0;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.audit-container-header h3 {
+    font-size: 16px;
+    color: #2b3674;
+    margin-bottom: 4px;
+}
+
+.audit-container-header p {
+    font-size: 12px;
+    color: #a3aed0;
+}
+
+.audit-meta-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: #a3aed0;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.audit-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.audit-table th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #a3aed0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.audit-table td {
+    padding: 16px;
+    border-bottom: 1px solid #f4f7fe;
+    font-size: 13px;
+    color: #2b3674;
+    vertical-align: middle;
+}
+
+.timestamp-cell {
+    color: #a3aed0;
+    font-variant-numeric: tabular-nums;
+}
+
+.user-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+}
+
+.record-id-cell {
+    color: #a3aed0;
+    font-weight: 600;
+}
+
+/* Action Pills */
+.action-pill {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 11px;
+    display: inline-block;
+    text-align: center;
+}
+
+.action-update { background: #eff6ff; color: #3b82f6; }
+.action-insert { background: #e6f8f3; color: #05cd99; }
+.action-delete { background: #ffebee; color: #ee5d50; }
+
+.affected-table-badge {
+    background: #f4f7fe;
+    color: #a3aed0;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+}

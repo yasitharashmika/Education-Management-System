@@ -1,0 +1,188 @@
+/* src/pages/FeePayments.css */
+.fee-header {
+    margin-bottom: 24px;
+}
+
+.fee-header h1 {
+    font-size: 24px;
+    color: #2b3674;
+    margin-bottom: 8px;
+}
+
+.fee-header p {
+    color: #a3aed0;
+    font-size: 14px;
+}
+
+/* Top Summary Cards */
+.fee-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 32px;
+}
+
+.fee-card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.fee-icon-box {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.fee-details h2 {
+    font-size: 24px;
+    color: #2b3674;
+    margin-bottom: 4px;
+}
+
+.fee-details p {
+    font-size: 12px;
+    color: #a3aed0;
+}
+
+/* Main Layout */
+.fee-layout {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 24px;
+}
+
+/* History Table Section */
+.history-container {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid #e2e8f0;
+}
+
+.history-container h3 {
+    font-size: 16px;
+    color: #2b3674;
+    margin-bottom: 4px;
+}
+
+.history-container > p {
+    font-size: 12px;
+    color: #a3aed0;
+    margin-bottom: 20px;
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.history-table th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #a3aed0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.history-table td {
+    padding: 16px;
+    border-bottom: 1px solid #f4f7fe;
+    font-size: 13px;
+    color: #2b3674;
+}
+
+.amount-cell {
+    font-weight: 600;
+}
+
+/* Payment Form Section */
+.payment-form-container {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid #e2e8f0;
+    height: fit-content;
+}
+
+.payment-form-container h3 {
+    font-size: 16px;
+    color: #2b3674;
+    margin-bottom: 4px;
+}
+
+.payment-form-container > p {
+    font-size: 12px;
+    color: #a3aed0;
+    margin-bottom: 24px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 13px;
+    color: #2b3674;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    font-size: 14px;
+    color: #2b3674;
+    outline: none;
+    transition: border 0.2s;
+}
+
+.form-input:focus {
+    border-color: #4318ff;
+}
+
+.pay-btn {
+    width: 100%;
+    padding: 14px;
+    background: #2b3674;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.pay-btn:hover {
+    background: #1a224d;
+}
+
+.pay-btn:disabled {
+    background: #a3aed0;
+    cursor: not-allowed;
+}
+
+/* Status Pills */
+.status-pill {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 12px;
+    display: inline-block;
+}
+
+.pill-paid { background: #e6f8f3; color: #05cd99; }
+.pill-pending { background: #fff8e1; color: #f6a623; }

@@ -1,0 +1,169 @@
+/* src/pages/FacultyAttendance.css */
+.attendance-marking-header {
+    margin-bottom: 24px;
+}
+
+.attendance-marking-header h1 {
+    font-size: 24px;
+    color: #2b3674;
+    margin-bottom: 8px;
+}
+
+.attendance-marking-header p {
+    color: #a3aed0;
+    font-size: 14px;
+}
+
+.top-filters {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.filter-group label {
+    font-size: 12px;
+    color: #2b3674;
+    font-weight: 600;
+}
+
+.filter-input {
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    font-size: 14px;
+    color: #2b3674;
+    outline: none;
+    background: white;
+    width: 100%;
+}
+
+.roster-container {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 80px; 
+}
+
+.stats-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 13px;
+    color: #a3aed0;
+    font-weight: 500;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.stat-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.roster-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.roster-table th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #a3aed0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.roster-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f4f7fe;
+    font-size: 13px;
+    color: #2b3674;
+    vertical-align: middle;
+}
+
+.student-id {
+    color: #a3aed0;
+    font-weight: 500;
+}
+
+.student-name {
+    font-weight: 500;
+}
+
+/* Interactive Status Toggles */
+.status-toggles {
+    display: flex;
+    gap: 8px;
+}
+
+.toggle-btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 11px;
+    border: 1px solid #e2e8f0;
+    background: white;
+    color: #a3aed0;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.toggle-btn:hover {
+    border-color: #cbd5e1;
+    color: #2b3674;
+}
+
+/* Active States */
+.toggle-btn.active-present { background: #e6f8f3; color: #05cd99; border-color: #05cd99; }
+.toggle-btn.active-absent { background: #ffebee; color: #ee5d50; border-color: #ee5d50; }
+.toggle-btn.active-late { background: #fff8e1; color: #f6a623; border-color: #f6a623; }
+.toggle-btn.active-excused { background: #eff6ff; color: #3b82f6; border-color: #3b82f6; }
+
+.save-action-bar {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: calc(100% - 280px);
+    background: white;
+    padding: 16px 32px;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end;
+    z-index: 10;
+}
+
+.save-btn {
+    background: #4318ff;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.2s;
+}
+
+.save-btn:hover {
+    background: #3311cc;
+}
