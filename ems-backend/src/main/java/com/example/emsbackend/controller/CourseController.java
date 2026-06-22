@@ -106,4 +106,5 @@ public class CourseController {
             return ResponseEntity.status(500).body(Map.of("message", "Database error occurred"));
         }
     }
+    
 }
