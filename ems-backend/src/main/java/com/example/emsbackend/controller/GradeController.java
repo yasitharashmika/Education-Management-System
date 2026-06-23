@@ -27,3 +27,25 @@ public class GradeController {
             @RequestParam String semester) {
         return ResponseEntity.ok(gradeService.getCourseRoster(courseId, academicYear, semester));
     }
+
+    @PostMapping("/save")
+    public ResponseEntity<String> saveGrades(@RequestBody List<GradeSaveRequestDTO> grades) {
+        gradeService.saveGrades(grades);
+        return ResponseEntity.ok("Grades published successfully");
+    }
+
+    @GetMapping("/assignments/{facultyId}")
+    public ResponseEntity<List<FacultyAssignmentDTO>> getAssignments(@PathVariable Integer facultyId) {
+        return ResponseEntity.ok(gradeService.getFacultyAssignments(facultyId));
+    }
+
+    // NEW: Fetch report card
+    @GetMapping("/report/{systemUserId}")
+    public ResponseEntity<?> getStudentReportCard(@PathVariable Integer systemUserId) {
+        try {
+            return ResponseEntity.ok(gradeService.getStudentReportCard(systemUserId));
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body(Map.of("message", e.getMessage()));
+        }
+    }
+}

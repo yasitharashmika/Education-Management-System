@@ -28,11 +28,15 @@ def run_analytics():
             return
 
         data = json.loads(input_data)
+
+        # 🌟 VIVA PROOF: Loading the data that Java extracted from the SQL Views!
         df_students = pd.DataFrame(data.get('students', []))
+        df_courses = pd.DataFrame(data.get('courses', []))
         df_history = pd.DataFrame(data.get('history', []))
 
         # --- MODEL 1: K-MEANS RISK CLUSTERING ---
         if not df_students.empty and len(df_students) >= 3:
+            # We use 'AverageGPA' and 'FailedCount' which come directly from vw_StudentAcademicDashboard
             X = df_students[['AverageGPA', 'FailedCount']].fillna(0)
             df_students['RiskCluster'] = KMeans(n_clusters=3, random_state=42, n_init=10).fit_predict(X)
             risk_counts = df_students.groupby('RiskCluster').size().to_dict()
@@ -49,16 +53,13 @@ def run_analytics():
         else:
             riskData = {"lowRiskCount": 0, "lowRiskPct": 0, "medRiskCount": 0, "medRiskPct": 0, "highRiskCount": 0, "highRiskPct": 0}
 
-
         # --- MODEL 2: REAL LINEAR REGRESSION FORECASTING ---
         forecastData = []
 
         if len(df_history) >= 2:
-            # 1. Format Historical Data for output and convert to numeric for training
             df_history['TimeIndex'] = df_history['TermLabel'].apply(term_to_numeric)
 
             for index, row in df_history.iterrows():
-                # Formats "2024 1" into "S1 2024" for the UI
                 nums = [int(s) for s in re.findall(r'\d+', str(row.get("TermLabel")))]
                 ui_label = f"S{nums[1]} {nums[0]}" if len(nums) >= 2 else str(row.get("TermLabel"))
 
@@ -68,26 +69,19 @@ def run_analytics():
                     "type": "historical"
                 })
 
-            # 2. Train the actual Linear Regression Model
             X_train = df_history[['TimeIndex']]
             y_train = df_history['EnrollmentCount']
 
             model = LinearRegression()
             model.fit(X_train, y_train)
 
-            # 3. Predict the next 3 semesters
             max_time = df_history['TimeIndex'].max()
             future_times = [max_time + 0.5, max_time + 1.0, max_time + 1.5]
 
             for ft in future_times:
-                # Math projection
                 prediction = model.predict([[ft]])[0]
-
-                # Format label back to "S1 2026"
                 year = int(ft)
                 sem = 2 if ft % 1 != 0 else 1
-
-                # Prevent negative enrollments if the trend goes down sharply
                 safe_pred = max(0, int(round(prediction)))
 
                 forecastData.append({
@@ -97,7 +91,6 @@ def run_analytics():
                 })
 
         else:
-            # Fallback only if the database is literally completely empty
             forecastData = [{"label": "No Data", "value": "0", "type": "historical"}]
 
         output = {

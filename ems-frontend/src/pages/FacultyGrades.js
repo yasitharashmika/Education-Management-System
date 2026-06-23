@@ -1,203 +1,286 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
-import { LineChart, Flag, Award, Medal } from 'lucide-react';
-import { getStudentReportCard } from '../services/apiService';
-import './Grades.css';
-import './Dashboard.css'; 
+import { Save } from 'lucide-react';
+import { getCourseRoster, saveCourseGrades, getFacultyAssignments } from '../services/apiService';
+import './FacultyGrades.css';
+import './Dashboard.css';
 
-const Grades = () => {
-    const [reportData, setReportData] = useState([]);
-    const [availableTabs, setAvailableTabs] = useState([]);
-    const [activeTab, setActiveTab] = useState('');
-    const [isLoading, setIsLoading] = useState(true);
+const FacultyGrades = () => {
+    const [roster, setRoster] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    
+    // UI state for the success/error notice
+    const [saveStatus, setSaveStatus] = useState({ type: '', message: '' });
 
-    // --- Secure User Data Extraction ---
+    // --- Dynamic Filter Options arrays ---
+    const [availableYears, setAvailableYears] = useState([]);
+    const [availableSemesters, setAvailableSemesters] = useState([]);
+    const [availableCourses, setAvailableCourses] = useState([]);
+
+    // --- Selected Values ---
+    const [academicYear, setAcademicYear] = useState('');
+    const [semester, setSemester] = useState('');
+    const [courseId, setCourseId] = useState(''); 
+
+    // Get Logged In User
     const userStr = localStorage.getItem('nexusUser');
-    const userData = userStr ? JSON.parse(userStr) : null;
-    const activeUserId = userData ? (userData.userId || userData.id || userData.UserId) : null;
+    const userData = userStr ? JSON.parse(userStr) : { userId: 1 };
 
+    // 1. Fetch the Faculty's specific assignments on page load
     useEffect(() => {
-        const fetchReportCard = () => {
-            setIsLoading(true);
-            getStudentReportCard(activeUserId)
-                .then(res => {
-                    const data = res.data || [];
-                    setReportData(data);
-                    
-                    // Extract unique Semester groupings (e.g., "Year 1 - Semester 1")
-                    const uniqueSemesters = [...new Set(data.map(d => `${d.academicYear} - ${d.semester}`))];
-                    setAvailableTabs(uniqueSemesters);
-                    
-                    if (uniqueSemesters.length > 0) {
-                        setActiveTab(uniqueSemesters[0]); // Default to the first available semester
-                    }
-                    setIsLoading(false);
-                })
-                .catch(err => {
-                    console.error("Failed to fetch report card", err);
-                    setIsLoading(false);
-                });
-        };
+        getFacultyAssignments(userData.userId || 1)
+            .then(res => {
+                const data = res.data;
+                if (data && data.length > 0) {
+                    const uniqueYears = [...new Set(data.map(item => item.academicYear))];
+                    setAvailableYears(uniqueYears);
+                    setAcademicYear(uniqueYears[0]); 
 
-        if (activeUserId) {
-            fetchReportCard();
-        } else {
-            setIsLoading(false);
+                    const uniqueSemesters = [...new Set(data.map(item => item.semester))];
+                    setAvailableSemesters(uniqueSemesters);
+                    setSemester(uniqueSemesters[0]); 
+
+                    const uniqueCourses = data.reduce((acc, current) => {
+                        const x = acc.find(item => item.courseId === current.courseId);
+                        if (!x) return acc.concat([current]);
+                        return acc;
+                    }, []);
+                    setAvailableCourses(uniqueCourses);
+                    setCourseId(uniqueCourses[0].courseId); 
+                }
+            })
+            .catch(err => console.error("Failed to load faculty assignments", err));
+    }, [userData.userId]);
+
+    // 2. Fetch the roster whenever filters change
+    useEffect(() => {
+        if (courseId && academicYear && semester) { 
+            fetchRoster();
         }
-    }, [activeUserId]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [academicYear, semester, courseId]);
 
-    // --- Dynamic Filters & GPA Calculations ---
-    const currentTabRecords = reportData.filter(d => `${d.academicYear} - ${d.semester}` === activeTab);
-    const totalCreditsEarned = reportData.reduce((sum, d) => sum + d.credits, 0);
+    const fetchRoster = () => {
+        setIsLoading(true);
+        setSaveStatus({ type: '', message: '' }); 
 
-    const calculateGPA = (records) => {
-        if (records.length === 0) return "0.00";
-        const totalPoints = records.reduce((sum, d) => sum + (d.gpaPoints * d.credits), 0);
-        const totalCredits = records.reduce((sum, d) => sum + d.credits, 0);
-        return totalCredits === 0 ? "0.00" : (totalPoints / totalCredits).toFixed(2);
+        getCourseRoster(courseId, academicYear, semester)
+            .then(res => {
+                const formattedRoster = res.data.map(student => ({
+                    studentId: student.studentId,
+                    formattedIndex: student.indexNumber || `ID-${student.studentId}`, 
+                    name: student.studentName,
+                    mid: student.midtermMarks !== null ? student.midtermMarks : '',
+                    final: student.finalMarks !== null ? student.finalMarks : ''
+                }));
+                setRoster(formattedRoster);
+                setIsLoading(false);
+            })
+            .catch(err => {
+                console.error("Failed to load roster", err);
+                setRoster([]);
+                setIsLoading(false);
+            });
     };
 
-    const cumulativeGPA = calculateGPA(reportData);
-    const currentSemGPA = calculateGPA(currentTabRecords);
+    const calculateGrade = (mid, final) => {
+        const m = parseFloat(mid) || 0;
+        const f = parseFloat(final) || 0;
+        const total = (m * 0.30) + (f * 0.70);
 
-    // Dynamic Styling Helpers based on the database Letter Grade
-    const getPillClass = (grade) => {
-        if (!grade) return 'pill-f';
-        if (grade.includes('A')) return grade === 'A+' ? 'pill-aplus' : (grade === 'A' ? 'pill-a' : 'pill-aminus');
-        if (grade.includes('B')) return 'pill-b';
-        if (grade.includes('C')) return 'pill-c'; 
-        return 'pill-f';
+        if (mid === '' && final === '') return { letter: '-', pill: 'pill-neutral' };
+
+        if (total > 85) return { letter: 'A+', pill: 'pill-aplus' };
+        if (total >= 75) return { letter: 'A', pill: 'pill-a' };
+        if (total >= 65) return { letter: 'A-', pill: 'pill-aminus' }; 
+        if (total > 55) return { letter: 'B', pill: 'pill-b' };
+        if (total > 45) return { letter: 'B-', pill: 'pill-bminus' };
+        return { letter: 'F', pill: 'pill-f' };
     };
 
-    const getColorClass = (grade) => {
-        if (!grade) return 'total-orange';
-        if (grade.includes('A')) return 'total-green';
-        if (grade.includes('B')) return 'total-blue';
-        return 'total-orange';
+    const handleMarkChange = (index, field, value) => {
+        const newRoster = [...roster];
+        newRoster[index][field] = value;
+        setRoster(newRoster);
     };
+
+    const handleSave = () => {
+        setIsSaving(true);
+        setSaveStatus({ type: '', message: '' });
+        
+        const payload = roster.map(student => ({
+            studentId: student.studentId,
+            courseId: courseId,
+            academicYear: academicYear,
+            semester: semester,
+            midtermMarks: parseFloat(student.mid) || 0,
+            finalMarks: parseFloat(student.final) || 0
+        }));
+
+        saveCourseGrades(payload)
+            .then(() => {
+                // --- THIS IS THE UPDATED SUCCESS NOTICE ---
+                setSaveStatus({ type: 'success', message: 'Marks added and saved successfully!' });
+                setIsSaving(false);
+                fetchRoster(); 
+                
+                // Hides the message after 3 seconds
+                setTimeout(() => {
+                    setSaveStatus({ type: '', message: '' });
+                }, 3000);
+            })
+            .catch(err => {
+                console.error("Save Error:", err);
+                setSaveStatus({ type: 'error', message: 'Failed to save marks. Please try again.' });
+                setIsSaving(false);
+            });
+    };
+
+    // --- LIVE STATISTICS CALCULATOR ---
+    let midtermMarked = 0;
+    let finalMarked = 0;
+    let fullyGraded = 0;
+
+    roster.forEach(student => {
+        const hasMid = student.mid !== '' && student.mid !== null;
+        const hasFinal = student.final !== '' && student.final !== null;
+        
+        if (hasMid) midtermMarked++;
+        if (hasFinal) finalMarked++;
+        if (hasMid && hasFinal) fullyGraded++;
+    });
 
     return (
         <div className="app-layout">
             <Sidebar />
             
-            <main className="main-content">
-                <div className="grades-header">
-                    <h1>Grades & Academic Performance</h1>
-                    <p>Track your academic progress across all semesters</p>
+            <main className="main-content" style={{ paddingBottom: '0' }}>
+                <div className="faculty-header">
+                    <h1>Faculty Grade Management</h1>
+                    <p>Enter and manage student grades for your assigned course modules</p>
                 </div>
 
-                {/* Top Summary Cards */}
-                <div className="summary-stats-container">
-                    <div className="stat-card">
-                        <div className="stat-icon-box icon-blue"><LineChart size={24} /></div>
-                        <div className="stat-details">
-                            <h2>{cumulativeGPA}</h2>
-                            <p>Cumulative GPA</p>
-                        </div>
+                <div className="top-filters">
+                    <div className="filter-group">
+                        <label>Academic Year</label>
+                        <select value={academicYear} onChange={e => setAcademicYear(e.target.value)}>
+                            {availableYears.length === 0 ? <option value="">No Data</option> : 
+                                availableYears.map(year => (
+                                    <option key={year} value={year}>{year}</option>
+                                ))
+                            }
+                        </select>
                     </div>
-                    <div className="stat-card">
-                        <div className="stat-icon-box icon-green"><Flag size={24} /></div>
-                        <div className="stat-details">
-                            <h2>{currentSemGPA}</h2>
-                            <p>Current Sem GPA</p>
-                        </div>
+                    <div className="filter-group">
+                        <label>Semester</label>
+                        <select value={semester} onChange={e => setSemester(e.target.value)}>
+                            {availableSemesters.length === 0 ? <option value="">No Data</option> : 
+                                availableSemesters.map(sem => (
+                                    <option key={sem} value={sem}>{sem}</option>
+                                ))
+                            }
+                        </select>
                     </div>
-                    <div className="stat-card">
-                        <div className="stat-icon-box icon-orange"><Award size={24} /></div>
-                        <div className="stat-details">
-                            <h2>{totalCreditsEarned}</h2>
-                            <p>Credits Earned</p>
-                        </div>
-                    </div>
-                    <div className="stat-card">
-                        <div className="stat-icon-box icon-blue"><Medal size={24} /></div>
-                        <div className="stat-details">
-                            <h2>{parseFloat(cumulativeGPA) >= 3.5 ? 'Honours' : 'Good'}</h2>
-                            <p>Academic Standing</p>
-                        </div>
+                    <div className="filter-group">
+                        <label>Course Module</label>
+                        <select value={courseId} onChange={e => setCourseId(Number(e.target.value))}>
+                            {availableCourses.length === 0 ? (
+                                <option value="">Loading courses...</option>
+                            ) : (
+                                availableCourses.map(course => (
+                                    <option key={course.courseId} value={course.courseId}>
+                                        {course.courseCode} - {course.courseName}
+                                    </option>
+                                ))
+                            )}
+                        </select>
                     </div>
                 </div>
 
-                {/* Dynamic Semester Tabs */}
-                <div className="semester-tabs">
-                    {availableTabs.length === 0 ? (
-                        <p style={{ color: '#a3aed0' }}>No academic records found.</p>
-                    ) : (
-                        availableTabs.map((tab, index) => {
-                            const tabRecords = reportData.filter(d => `${d.academicYear} - ${d.semester}` === tab);
-                            const tabGPA = calculateGPA(tabRecords);
-                            return (
-                                <button 
-                                    key={index}
-                                    className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
-                                    onClick={() => setActiveTab(tab)}
-                                >
-                                    {tab} <span>GPA {tabGPA}</span>
-                                </button>
-                            )
-                        })
-                    )}
-                </div>
+                <div className="roster-container">
+                    {/* --- LIVE PROGRESS BAR --- */}
+                    <div className="stats-bar" style={{ display: 'flex', gap: '15px', padding: '15px', backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', alignItems: 'center', fontSize: '14px' }}>
+                        <span style={{ color: '#2b3674' }}>Fully Graded: <strong>{fullyGraded}</strong> / {roster.length}</span>
+                        <span style={{ color: '#cbd5e1' }}>|</span>
+                        <div className="stat-item" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#3b82f6' }}></div> Midterms Entered: <strong>{midtermMarked}</strong></div>
+                        <div className="stat-item" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981' }}></div> Finals Entered: <strong>{finalMarked}</strong></div>
+                    </div>
 
-                {/* Dynamic Data Table */}
-                <div className="table-container">
-                    <table className="grades-table">
+                    <table className="roster-table">
                         <thead>
                             <tr>
-                                <th>Course</th>
-                                <th>Credits</th>
-                                <th>Midterm</th>
-                                <th>Finals</th>
-                                <th>Total %</th>
-                                <th>Grade</th>
-                                <th>Points</th>
+                                <th>Student ID</th>
+                                <th>Student Name</th>
+                                <th style={{textAlign: 'center'}}>Midterm Marks (30%)</th>
+                                <th style={{textAlign: 'center'}}>Final Marks (70%)</th>
+                                <th style={{textAlign: 'center'}}>Letter Grade Preview</th>
                             </tr>
                         </thead>
                         <tbody>
                             {isLoading ? (
-                                <tr><td colSpan="7" style={{textAlign: 'center', padding: '20px', color: '#a3aed0'}}>Loading academic records...</td></tr>
-                            ) : currentTabRecords.length === 0 ? (
-                                <tr><td colSpan="7" style={{textAlign: 'center', padding: '20px', color: '#a3aed0'}}>No grades posted for this semester.</td></tr>
+                                <tr><td colSpan="5" style={{textAlign:'center', padding: '20px', color: '#a3aed0'}}>Loading database roster...</td></tr>
+                            ) : roster.length === 0 ? (
+                                <tr><td colSpan="5" style={{textAlign:'center', padding: '20px', color: '#a3aed0'}}>No students enrolled in this configuration.</td></tr>
                             ) : (
-                                currentTabRecords.map((course, index) => (
-                                    <tr key={index}>
-                                        <td className="course-name-cell">
-                                            <h4>{course.courseName}</h4>
-                                            <p>{course.courseCode}</p>
-                                        </td>
-                                        <td className="numeric-cell">{course.credits}</td>
-                                        <td className="numeric-cell">{course.midtermMarks}</td>
-                                        <td className="numeric-cell">{course.finalMarks}</td>
-                                        <td className={`numeric-cell total-pct ${getColorClass(course.letterGrade)}`}>{course.totalMarks}%</td>
-                                        <td>
-                                            <span className={`grade-pill ${getPillClass(course.letterGrade)}`}>{course.letterGrade}</span>
-                                        </td>
-                                        <td className="numeric-cell">{course.gpaPoints.toFixed(2)}</td>
-                                    </tr>
-                                ))
+                                roster.map((student, index) => {
+                                    const gradePreview = calculateGrade(student.mid, student.final);
+                                    return (
+                                        <tr key={student.studentId}>
+                                            <td className="student-id" style={{ fontWeight: '600' }}>
+                                                {student.formattedIndex}
+                                            </td>
+                                            <td className="student-name">{student.name}</td>
+                                            <td style={{textAlign: 'center'}}>
+                                                <input 
+                                                    type="number" 
+                                                    className="mark-input" 
+                                                    value={student.mid}
+                                                    onChange={(e) => handleMarkChange(index, 'mid', e.target.value)}
+                                                    placeholder="-"
+                                                />
+                                            </td>
+                                            <td style={{textAlign: 'center'}}>
+                                                <input 
+                                                    type="number" 
+                                                    className="mark-input" 
+                                                    value={student.final}
+                                                    onChange={(e) => handleMarkChange(index, 'final', e.target.value)}
+                                                    placeholder="-"
+                                                />
+                                            </td>
+                                            <td style={{textAlign: 'center'}}>
+                                                <span className={`grade-pill ${gradePreview.pill}`}>
+                                                    {gradePreview.letter}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
                             )}
                         </tbody>
                     </table>
                 </div>
 
-                {/* Grading Scale Legend */}
-                <div className="reference-card">
-                    <h3>Grading Scale Reference</h3>
-                    <div className="legend-grid">
-                        <div className="legend-item"><div className="dot" style={{background: '#05cd99'}}></div> <strong>A+</strong> 85-100% GP: 4.00</div>
-                        <div className="legend-item"><div className="dot" style={{background: '#05cd99'}}></div> <strong>A</strong> 80-84% GP: 4.00</div>
-                        <div className="legend-item"><div className="dot" style={{background: '#03906b'}}></div> <strong>A-</strong> 75-79% GP: 3.70</div>
-                        <div className="legend-item"><div className="dot" style={{background: '#4318ff'}}></div> <strong>B+</strong> 70-74% GP: 3.30</div>
-                        <div className="legend-item"><div className="dot" style={{background: '#3b82f6'}}></div> <strong>B</strong> 65-69% GP: 3.00</div>
-                        <div className="legend-item"><div className="dot" style={{background: '#ffb547'}}></div> <strong>B-</strong> 60-64% GP: 2.70</div>
-                        <div className="legend-item"><div className="dot" style={{background: '#f6a623'}}></div> <strong>C+</strong> 55-59% GP: 2.30</div>
-                        <div className="legend-item"><div className="dot" style={{background: '#fcd34d'}}></div> <strong>C</strong> 50-54% GP: 2.00</div>
-                        <div className="legend-item"><div className="dot" style={{background: '#ee5d50'}}></div> <strong>F</strong> 0-49% GP: 0.00</div>
-                    </div>
+                <div className="save-action-bar" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+                    {/* --- THE SUCCESS NOTICE DISPLAYS HERE --- */}
+                    {saveStatus.message && (
+                        <span style={{ 
+                            marginRight: '15px', 
+                            color: saveStatus.type === 'success' ? '#10b981' : '#ef4444', 
+                            fontWeight: '600',
+                            animation: 'fadeIn 0.3s ease-in-out'
+                        }}>
+                            {saveStatus.message}
+                        </span>
+                    )}
+                    <button className="save-btn" onClick={handleSave} disabled={isSaving || roster.length === 0}>
+                        <Save size={18} /> {isSaving ? "Saving..." : "Save & Publish Grades"}
+                    </button>
                 </div>
             </main>
         </div>
     );
 };
 
-export default Grades;
+export default FacultyGrades;

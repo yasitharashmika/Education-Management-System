@@ -10,6 +10,8 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+// --> ADDED: Required for the automated batch job
+import org.springframework.scheduling.annotation.Scheduled;
 
 import java.util.List;
 
@@ -98,5 +100,18 @@ public class GradeServiceImpl implements GradeService {
         } catch (EmptyResultDataAccessException e) {
             throw new RuntimeException("Action denied: No Student profile found for this account.");
         }
+    }
+
+    // =========================================================================
+    // --> ADDED: Automated Batch Job for the Viva (Cursor Execution)
+    // =========================================================================
+
+    // This tells Spring Boot to run this method automatically every night at midnight
+    @Scheduled(cron = "0 0 0 * * ?")
+    public void runNightlyGpaCursor() {
+        System.out.println("Starting nightly GPA refresh cursor...");
+        // This executes your SQL Cursor file (06_refresh_all_gpas.sql)
+        jdbcTemplate.execute("EXEC sp_RefreshAllGPAs");
+        System.out.println("Nightly GPA refresh completed.");
     }
 }

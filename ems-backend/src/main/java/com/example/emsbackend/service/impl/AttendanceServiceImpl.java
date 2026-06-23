@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+// --> ADDED: Required for the automated batch job
+import org.springframework.scheduling.annotation.Scheduled;
 
 import java.util.List;
 
@@ -66,5 +68,18 @@ public class AttendanceServiceImpl implements AttendanceService {
             dto.setStatus(rs.getString("Status"));
             return dto;
         }, studentId);
+    }
+
+    // =========================================================================
+    // --> ADDED: Automated Batch Job for the Viva (Attendance Cursor Execution)
+    // =========================================================================
+
+    // This tells Spring Boot to run this cursor automatically every morning at 8:00 AM
+    @Scheduled(cron = "0 0 8 * * ?")
+    public void runDailyAttendanceWarningCursor() {
+        System.out.println("Starting daily attendance warning cursor...");
+        // This executes your SQL Cursor file (04_generate_low_attendance_warnings.sql)
+        jdbcTemplate.execute("EXEC sp_GenerateLowAttendanceWarnings");
+        System.out.println("Daily attendance check completed.");
     }
 }

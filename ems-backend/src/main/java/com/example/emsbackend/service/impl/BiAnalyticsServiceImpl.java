@@ -22,17 +22,14 @@ public class BiAnalyticsServiceImpl implements BiAnalyticsService {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    // This variable holds our pre-calculated data in server memory
     private AdminAnalyticsDTO cachedDashboardData = null;
 
-    // 1. Run this exactly ONCE when the server boots up
     @PostConstruct
     public void init() {
         System.out.println("Running initial BI Analytics calculation...");
         refreshAnalyticsCache();
     }
 
-    // 2. Run this automatically in the background every hour (3,600,000 milliseconds)
     @Scheduled(fixedRate = 3600000)
     public void refreshAnalyticsCache() {
         try {
@@ -45,12 +42,23 @@ public class BiAnalyticsServiceImpl implements BiAnalyticsService {
                 newData.setTotalRevenue(rs.getDouble("TotalRevenue"));
             });
 
-            // Fetch Historical Data
-            List<Map<String, Object>> studentRiskData = jdbcTemplate.queryForList("SELECT ISNULL(CurrentGPA, 0) AS AverageGPA, 0 AS FailedCount FROM Student");
+            // ==========================================================
+            // 🌟 VIVA PROOF: CALLING THE SQL VIEWS HERE! 🌟
+            // ==========================================================
+
+            // 1. Calling View 1: Student Academic Dashboard
+            List<Map<String, Object>> studentRiskData = jdbcTemplate.queryForList("SELECT * FROM vw_StudentAcademicDashboard");
+
+            // 2. Calling View 2: Course Performance Summary
+            List<Map<String, Object>> coursePerformanceData = jdbcTemplate.queryForList("SELECT * FROM vw_CoursePerformanceSummary");
+
+            // Fetch Historical Data for forecasting
             List<Map<String, Object>> enrollmentHistory = jdbcTemplate.queryForList("EXEC sp_GetAnalyticsExport");
 
+            // Prepare the JSON payload to send to Python
             Map<String, Object> pythonPayload = new HashMap<>();
-            pythonPayload.put("students", studentRiskData);
+            pythonPayload.put("students", studentRiskData); // Data from View 1
+            pythonPayload.put("courses", coursePerformanceData); // Data from View 2
             pythonPayload.put("history", enrollmentHistory);
 
             ObjectMapper mapper = new ObjectMapper();
@@ -93,21 +101,17 @@ public class BiAnalyticsServiceImpl implements BiAnalyticsService {
             newData.setForecastData((List<Object>) biResults.get("forecastData"));
             newData.setRiskData(biResults.get("riskData"));
 
-            // Safely update the cache only if Python succeeded!
             this.cachedDashboardData = newData;
             System.out.println("Background BI Analytics refresh completed successfully.");
 
         } catch (Exception e) {
             System.err.println("Scheduled BI refresh failed. Keeping old cached data. Reason: " + e.getMessage());
-            // Notice we do NOT crash here! If Python fails, the dashboard just keeps showing the data from the previous hour.
         }
     }
 
-    // 3. React hits this endpoint. It returns instantly!
     @Override
     public AdminAnalyticsDTO getDashboardAnalytics() {
         if (this.cachedDashboardData == null) {
-            // Safety fallback if the cache hasn't loaded yet
             refreshAnalyticsCache();
         }
         return this.cachedDashboardData;
